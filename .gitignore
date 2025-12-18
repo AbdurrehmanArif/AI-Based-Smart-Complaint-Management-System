@@ -10,7 +10,7 @@ ENV/
 database/*.db
 
 # Weights & Models
-models/*.joblib
+# models/*.joblib (Removed for deployment)
 
 # OS
 .DS_Store
