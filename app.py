@@ -3,6 +3,21 @@ import uuid
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import io
+import sys
+
+PDF_SUPPORT = False
+PDF_ERROR = ""
+try:
+    import pdfplumber
+    PDF_SUPPORT = True
+except ImportError as e:
+    PDF_ERROR = str(e)
+    try:
+        import pypdf
+        PDF_SUPPORT = True
+    except ImportError as e2:
+        PDF_ERROR += f" | {str(e2)}"
 from database.db_manager import add_complaint, get_all_complaints, update_complaint_status, authenticate_admin, init_db
 from models.model_logic import predict_complaint
 from utils.email_service import send_complaint_notification
@@ -81,6 +96,81 @@ def customer_page():
                 st.info(f"An auto-response has been sent to **{email}**. Your request is forwarded to the **{department}** department. Estimated response time: **{response_time}**.")
             else:
                 st.error("Please fill in all fields.")
+
+    st.divider()
+    st.subheader("📁 Bulk Upload (CSV / PDF)")
+    
+    if not PDF_SUPPORT:
+        st.warning(f"⚠️ PDF support is currently unavailable. Error: {PDF_ERROR}")
+        st.info("Try running: `pip install pdfplumber pypdf` and restart.")
+        
+    with st.expander("📥 CSV Format Guide"):
+        st.write("Ensure your CSV has a column for the complaint text. We will automatically look for columns named 'complaint', 'text', or simply use the first column.")
+        st.code("complaint_text,name,email\nMy internet is slow,John,john@example.com")
+
+    uploaded_file = st.file_uploader("Upload a file containing complaints", type=["csv", "pdf"] if PDF_SUPPORT else ["csv"])
+    
+    if uploaded_file is not None:
+        bulk_data = []
+        if uploaded_file.type == "text/csv":
+            df_upload = pd.read_csv(uploaded_file)
+            
+            # Flexible column detection
+            target_col = None
+            for col in df_upload.columns:
+                if 'complaint' in col.lower() or 'text' in col.lower():
+                    target_col = col
+                    break
+            
+            if target_col is None:
+                target_col = df_upload.columns[0] # Default to first column
+                st.warning(f"Could not find a 'complaint' or 'text' column. Using the first column: **{target_col}**")
+
+            for idx, row in df_upload.iterrows():
+                text = str(row[target_col])
+                if not text.strip(): continue
+                
+                cust_name = row.get('name', row.get('customer_name', 'Bulk User'))
+                cust_email = row.get('email', 'bulk@example.com')
+                cust_phone = row.get('phone', 'N/A')
+                cust_city = row.get('city', 'N/A')
+                cust_address = row.get('address', 'N/A')
+                bulk_data.append((text, cust_name, cust_email, cust_phone, cust_city, cust_address))
+        
+        elif uploaded_file.type == "application/pdf" and PDF_SUPPORT:
+            try:
+                full_text = ""
+                # Try pdfplumber first
+                try:
+                    import pdfplumber
+                    with pdfplumber.open(io.BytesIO(uploaded_file.read())) as pdf:
+                        for page in pdf.pages:
+                            full_text += (page.extract_text() or "") + "\n"
+                except ImportError:
+                    # Fallback to pypdf
+                    import pypdf
+                    reader = pypdf.PdfReader(io.BytesIO(uploaded_file.read()))
+                    for page in reader.pages:
+                        full_text += (page.extract_text() or "") + "\n"
+                
+                if full_text.strip():
+                    bulk_data.append((full_text, "PDF User", "pdf@example.com", "N/A", "N/A", "N/A"))
+                else:
+                    st.error("Could not extract text from PDF.")
+            except Exception as e:
+                st.error(f"Error processing PDF: {e}")
+
+        if bulk_data:
+            if st.button(f"Process {len(bulk_data)} complaints"):
+                progress_bar = st.progress(0)
+                for i, (text, name, email, phone, city, address) in enumerate(bulk_data):
+                    category, priority, department, response_time = predict_complaint(text)
+                    tracking_id = str(uuid.uuid4())[:8].upper()
+                    add_complaint(tracking_id, name, email, phone, city, address, text, category, priority, department)
+                    progress_bar.progress((i + 1) / len(bulk_data))
+                
+                st.success(f"Successfully processed {len(bulk_data)} complaints from file!")
+                st.rerun()
 
 def admin_dashboard():
     st.title("📊 Admin Analytics & Management")
