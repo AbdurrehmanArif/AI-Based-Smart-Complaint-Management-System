@@ -52,6 +52,13 @@ def get_all_complaints():
     conn.close()
     return df
 
+def get_complaint_by_id(tracking_id):
+    conn = sqlite3.connect(DATABASE_NAME)
+    query = "SELECT * FROM complaints WHERE tracking_id = ?"
+    df = pd.read_sql_query(query, conn, params=(tracking_id,))
+    conn.close()
+    return df
+
 def update_complaint_status(tracking_id, status):
     conn = sqlite3.connect(DATABASE_NAME)
     cursor = conn.cursor()

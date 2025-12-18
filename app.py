@@ -18,7 +18,7 @@ except ImportError as e:
         PDF_SUPPORT = True
     except ImportError as e2:
         PDF_ERROR += f" | {str(e2)}"
-from database.db_manager import add_complaint, get_all_complaints, update_complaint_status, authenticate_admin, init_db
+from database.db_manager import add_complaint, get_all_complaints, update_complaint_status, authenticate_admin, init_db, get_complaint_by_id
 from models.model_logic import predict_complaint
 from utils.email_service import send_complaint_notification
 
@@ -171,6 +171,38 @@ def customer_page():
                 
                 st.success(f"Successfully processed {len(bulk_data)} complaints from file!")
                 st.rerun()
+
+    st.divider()
+    st.subheader("🔍 Track Your Complaint")
+    track_id = st.text_input("Enter your Tracking ID to check status", placeholder="e.g. ABC12345")
+    
+    if st.button("Check Status"):
+        if track_id:
+            track_df = get_complaint_by_id(track_id.strip().upper())
+            if not track_df.empty:
+                complaint = track_df.iloc[0]
+                status = complaint['status']
+                
+                # Visual status indicator
+                status_color = "#ff4b4b" if status == "Pending" else "#007bff" if status == "In Progress" else "#28a745"
+                st.markdown(f"""
+                    <div style="padding: 20px; border-radius: 10px; background-color: white; border-left: 10px solid {status_color}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 style="margin-top: 0;">Complaint Status: <span style="color: {status_color};">{status}</span></h3>
+                        <p><strong>Tracking ID:</strong> {complaint['tracking_id']}</p>
+                        <p><strong>Submitted On:</strong> {complaint['created_at']}</p>
+                        <p><strong>Department:</strong> {complaint['department']}</p>
+                        <p><strong>Category:</strong> {complaint['category']} | <strong>Priority:</strong> {complaint['priority']}</p>
+                        <hr>
+                        <p><strong>Complaint Text:</strong><br>{complaint['complaint_text']}</p>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                if status == "Resolved":
+                    st.balloons()
+            else:
+                st.error("Tracking ID not found. Please check and try again.")
+        else:
+            st.warning("Please enter a Tracking ID.")
 
 def admin_dashboard():
     st.title("📊 Admin Analytics & Management")
