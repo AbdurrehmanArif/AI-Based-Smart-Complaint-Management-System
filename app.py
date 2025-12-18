@@ -172,9 +172,11 @@ def customer_page():
                 st.success(f"Successfully processed {len(bulk_data)} complaints from file!")
                 st.rerun()
 
-    st.divider()
-    st.subheader("🔍 Track Your Complaint")
-    track_id = st.text_input("Enter your Tracking ID to check status", placeholder="e.g. ABC12345")
+def track_complaint_page():
+    st.title("🔍 Track Your Complaint")
+    st.info("Enter your unique Tracking ID below to check the current status of your complaint.")
+    
+    track_id = st.text_input("Tracking ID", placeholder="e.g. ABC12345")
     
     if st.button("Check Status"):
         if track_id:
@@ -186,8 +188,8 @@ def customer_page():
                 # Visual status indicator
                 status_color = "#ff4b4b" if status == "Pending" else "#007bff" if status == "In Progress" else "#28a745"
                 st.markdown(f"""
-                    <div style="padding: 20px; border-radius: 10px; background-color: white; border-left: 10px solid {status_color}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                        <h3 style="margin-top: 0;">Complaint Status: <span style="color: {status_color};">{status}</span></h3>
+                    <div style="padding: 20px; border-radius: 10px; background-color: white; border-left: 10px solid {status_color}; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: black;">
+                        <h3 style="margin-top: 0; color: {status_color};">Complaint Status: {status}</h3>
                         <p><strong>Tracking ID:</strong> {complaint['tracking_id']}</p>
                         <p><strong>Submitted On:</strong> {complaint['created_at']}</p>
                         <p><strong>Department:</strong> {complaint['department']}</p>
@@ -328,10 +330,12 @@ def admin_dashboard():
 
 def main():
     st.sidebar.title("Navigation")
-    choice = st.sidebar.radio("Go to", ["Customer Portal", "Admin Login"])
+    choice = st.sidebar.radio("Go to", ["Customer Portal", "Track Complaint", "Admin Login"])
     
     if choice == "Customer Portal":
         customer_page()
+    elif choice == "Track Complaint":
+        track_complaint_page()
     else:
         st.sidebar.divider()
         if 'logged_in' not in st.session_state:
