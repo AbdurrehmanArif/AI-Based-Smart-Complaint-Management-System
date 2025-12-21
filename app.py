@@ -27,32 +27,7 @@ init_db()
 
 st.set_page_config(page_title="Smart Complaint Management", layout="wide")
 
-# CSS for styling
-st.markdown("""
-    <style>
-    .main {
-        background-color: #f5f7f9;
-    }
-    .stButton>button {
-        width: 100%;
-        border-radius: 5px;
-        height: 3em;
-        background-color: #007bff;
-        color: white;
-    }
-    .complaint-card {
-        padding: 1.5rem;
-        border-radius: 10px;
-        border-left: 5px solid #007bff;
-        background-color: white;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    }
-    .priority-high { color: #dc3545; font-weight: bold; }
-    .priority-medium { color: #ffc107; font-weight: bold; }
-    .priority-low { color: #28a745; font-weight: bold; }
-    </style>
-    """, unsafe_allow_html=True)
+# Theme CSS is applied dynamically in main() based on sidebar selection
 
 def customer_page():
     st.title("📩 Submit Your Complaint")
@@ -329,6 +304,193 @@ def admin_dashboard():
         )
 
 def main():
+    # Theme Configuration
+    if 'theme' not in st.session_state:
+        st.session_state.theme = 'Light Mode'
+    
+    st.sidebar.title("🎨 Theme")
+    theme = st.sidebar.radio("Select Mode", ["Light Mode", "Dark Mode"], 
+                            index=0 if st.session_state.theme == 'Light Mode' else 1,
+                            label_visibility="collapsed")
+    st.session_state.theme = theme
+
+    # Common Styles
+    st.markdown("""
+        <style>
+        .priority-high { color: #dc3545; font-weight: bold; }
+        .priority-medium { color: #ffc107; font-weight: bold; }
+        .priority-low { color: #28a745; font-weight: bold; }
+        </style>
+    """, unsafe_allow_html=True)
+
+    # Apply Theme-Specific CSS
+    if theme == "Dark Mode":
+        st.markdown("""
+            <style>
+            /* ===== PROFESSIONAL DARK MODE ===== */
+            
+            /* Background & Container */
+            [data-testid="stAppViewContainer"] {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+                color: #e2e8f0 !important;
+            }
+            
+            [data-testid="stSidebar"] {
+                background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%) !important;
+                border-right: 1px solid #334155 !important;
+            }
+            
+            [data-testid="stHeader"] {
+                background-color: rgba(15, 23, 42, 0.95) !important;
+                backdrop-filter: blur(10px);
+            }
+            
+            /* Typography */
+            .stMarkdown, .stText, h1, h2, h3, p, label, .stMetric {
+                color: #e2e8f0 !important;
+            }
+            
+            h1, h2, h3 {
+                color: #f1f5f9 !important;
+                font-weight: 600 !important;
+            }
+            
+            /* Complaint Cards */
+            .complaint-card {
+                background: linear-gradient(135deg, #1e293b 0%, #334155 100%) !important;
+                border-left: 4px solid #3b82f6 !important;
+                color: #e2e8f0 !important;
+                border-radius: 12px;
+                padding: 1.5rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            .complaint-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 24px rgba(59, 130, 246, 0.2);
+            }
+            
+            /* Input Fields */
+            div[data-baseweb="input"] > div,
+            div[data-baseweb="textarea"] > div {
+                background-color: #1e293b !important;
+                color: #e2e8f0 !important;
+                border: 1px solid #475569 !important;
+                border-radius: 8px;
+            }
+            
+            input, textarea {
+                color: #e2e8f0 !important;
+            }
+            
+            input::placeholder, textarea::placeholder {
+                color: #64748b !important;
+            }
+            
+            /* Premium Buttons */
+            button, .stButton > button, section[data-testid="stFileUploader"] label {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 8px;
+                height: 3em;
+                width: 100%;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+            
+            button:hover, .stButton > button:hover, section[data-testid="stFileUploader"] label:hover {
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            }
+            
+            /* Tabs */
+            .stTabs [data-baseweb="tab-list"] {
+                background-color: transparent !important;
+                gap: 8px;
+            }
+            
+            .stTabs [data-baseweb="tab"] {
+                background-color: #1e293b !important;
+                color: #94a3b8 !important;
+                border-radius: 8px 8px 0 0;
+                padding: 12px 24px;
+                border: none !important;
+            }
+            
+            .stTabs [data-baseweb="tab"][aria-selected="true"] {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+                color: #ffffff !important;
+            }
+            
+            /* DataFrames */
+            .stDataFrame {
+                background-color: #1e293b !important;
+                border-radius: 8px;
+            }
+            
+            /* Metrics */
+            [data-testid="stMetricValue"] {
+                color: #f1f5f9 !important;
+                font-weight: 600;
+            }
+            
+            /* Info/Success/Error boxes */
+            .stAlert {
+                background-color: #1e293b !important;
+                border-radius: 8px;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <style>
+            /* ===== LIGHT MODE ===== */
+            [data-testid="stAppViewContainer"] { 
+                background-color: #f8fafc; 
+            }
+            
+            .complaint-card { 
+                padding: 1.5rem; 
+                border-radius: 12px; 
+                border-left: 4px solid #3b82f6; 
+                background-color: white; 
+                margin-bottom: 1rem; 
+                box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
+            
+            .complaint-card:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(59, 130, 246, 0.15);
+            }
+            
+            /* Premium Buttons */
+            button, .stButton>button, section[data-testid="stFileUploader"] label {
+                background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
+                color: #ffffff !important;
+                border-radius: 8px;
+                height: 3em;
+                width: 100%;
+                border: none;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+            }
+            
+            button:hover, .stButton>button:hover, section[data-testid="stFileUploader"] label:hover {
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
+    st.sidebar.divider()
     st.sidebar.title("Navigation")
     choice = st.sidebar.radio("Go to", ["Customer Portal", "Track Complaint", "Admin Login"])
     
