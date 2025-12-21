@@ -1,6 +1,11 @@
 # AI-Based Smart Complaint Management System 🚀
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-based-smart-complaint-management-system-8wqmt2hcjh7km8mhkpa.streamlit.app/)
+
 An automated system designed for companies and institutes to handle thousands of customer complaints efficiently using AI and Data Science.
+
+## 🌐 Live Demo
+**[View Live Application →](https://ai-based-smart-complaint-management-system-8wqmt2hcjh7km8mhkpa.streamlit.app/)**
 
 ## 🌟 Key Features
 
