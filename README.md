@@ -1,4 +1,4 @@
-# AI-Based Smart Complaint Management System 🚀
+# Complaint Tracker 🚀
 
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ai-based-smart-complaint-management-system-8wqmt2hcjh7km8mhkpa.streamlit.app/)
 

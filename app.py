@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import io
 import sys
+import base64
 
 PDF_SUPPORT = False
 PDF_ERROR = ""
@@ -25,12 +26,42 @@ from utils.email_service import send_complaint_notification
 # Initialize DB on start
 init_db()
 
-st.set_page_config(page_title="Smart Complaint Management", layout="wide")
+st.set_page_config(page_title="Complaint Tracker", layout="wide")
+
+LOGO_PATH = "C:/Users/user/.gemini/antigravity/brain/e6d95019-77fa-4e58-8904-a8116d431a45/complaint_tracker_search_logo_1766371646848.png"
 
 # Theme CSS is applied dynamically in main() based on sidebar selection
 
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return ""
+
+def render_header():
+    """Renders the consistent app header with logo."""
+    img_base64 = get_base64_image(LOGO_PATH)
+    img_src = f"data:image/png;base64,{img_base64}" if img_base64 else ""
+    
+    st.markdown(f"""
+        <div style="text-align: center; margin-bottom: 2rem;">
+            {f'<img src="{img_src}" alt="Logo" style="width: 120px; margin-bottom: 1rem;">' if img_base64 else ''}
+            <h1 style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); 
+                       -webkit-background-clip: text; 
+                       -webkit-text-fill-color: transparent; 
+                       font-size: 3.5rem; 
+                       font-weight: 800; 
+                       margin-bottom: 0.5rem;">
+                Complaint Tracker
+            </h1>
+            <p style="color: #64748b; font-size: 1.2rem;">Detailed Analysis & Quick Resolution</p>
+        </div>
+    """, unsafe_allow_html=True)
+
 def customer_page():
-    st.title("📩 Submit Your Complaint")
+    render_header()
+    st.markdown("### 📩 Submit Your Complaint")
     st.info("Our AI will automatically categorize and prioritize your request.")
     
     with st.form("complaint_form", clear_on_submit=True):
@@ -57,7 +88,20 @@ def customer_page():
                 add_complaint(tracking_id, name, email, phone, city, address, complaint_text, category, priority, department)
                 
                 # Send Notification (Simulated)
-                send_complaint_notification(email, tracking_id, department)
+                send_complaint_notification(
+                    customer_email=email,
+                    tracking_id=tracking_id,
+                    department=department,
+                    status="received",
+                    customer_name=name,
+                    category=category,
+                    priority=priority,
+                    response_time=response_time,
+                    customer_phone=phone,
+                    city=city,
+                    address=address,
+                    complaint_text=complaint_text
+                )
                 
                 st.success(f"Complaint Submitted Successfully! Tracking ID: **{tracking_id}**")
                 
@@ -148,7 +192,8 @@ def customer_page():
                 st.rerun()
 
 def track_complaint_page():
-    st.title("🔍 Track Your Complaint")
+    render_header()
+    st.markdown("### 🔍 Track Your Complaint")
     st.info("Enter your unique Tracking ID below to check the current status of your complaint.")
     
     track_id = st.text_input("Tracking ID", placeholder="e.g. ABC12345")
@@ -182,7 +227,8 @@ def track_complaint_page():
             st.warning("Please enter a Tracking ID.")
 
 def admin_dashboard():
-    st.title("📊 Admin Analytics & Management")
+    render_header()
+    st.markdown("### 📊 Admin Analytics & Management")
     
     df = get_all_complaints()
     
@@ -242,8 +288,16 @@ def admin_dashboard():
                 # Fetch email for notification
                 target_complaint = df[df['tracking_id'] == target_id]
                 if not target_complaint.empty:
-                    cust_email = target_complaint.iloc[0]['email']
-                    send_complaint_notification(cust_email, target_id, "N/A", status=new_status)
+                    complaint_data = target_complaint.iloc[0]
+                    send_complaint_notification(
+                        customer_email=complaint_data['email'],
+                        tracking_id=target_id,
+                        department=complaint_data['department'],
+                        status=new_status,
+                        customer_name=complaint_data['customer_name'],
+                        category=complaint_data['category'],
+                        priority=complaint_data['priority']
+                    )
                 
                 st.success(f"Status updated for {target_id} and customer notified.")
                 st.rerun()
@@ -307,6 +361,11 @@ def main():
     # Theme Configuration
     if 'theme' not in st.session_state:
         st.session_state.theme = 'Light Mode'
+    
+    # Sidebar Header
+    st.sidebar.image(LOGO_PATH, width=120)
+    st.sidebar.title("Complaint Tracker")
+    st.sidebar.markdown("---")
     
     st.sidebar.title("🎨 Theme")
     theme = st.sidebar.radio("Select Mode", ["Light Mode", "Dark Mode"], 
