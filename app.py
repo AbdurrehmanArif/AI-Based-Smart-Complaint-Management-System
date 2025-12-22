@@ -28,7 +28,7 @@ init_db()
 
 st.set_page_config(page_title="Complaint Tracker", layout="wide")
 
-LOGO_PATH = "C:/Users/user/.gemini/antigravity/brain/e6d95019-77fa-4e58-8904-a8116d431a45/complaint_tracker_search_logo_1766371646848.png"
+LOGO_PATH = "assets/logo.png"
 
 # Theme CSS is applied dynamically in main() based on sidebar selection
 
